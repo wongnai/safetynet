@@ -1,8 +1,8 @@
 package safetynet_test
 
 import (
-	"github.com/wongnai/safetynet"
 	"github.com/stretchr/testify/assert"
+	"github.com/wongnai/safetynet"
 	"testing"
 	"time"
 )
@@ -17,7 +17,7 @@ func TestValidate(t *testing.T) {
 		return time.Date(2019, 5, 1, 0, 0, 0, 0, time.FixedZone("UTC", 0))
 	}
 
-	attestation, err := safetynet.ValidateSafetyNet([]byte(safetynetJws))
+	attestation, err := safetynet.Validate([]byte(safetynetJws))
 	assert.Nil(err)
 	assert.Equal(int64(1553740619009), attestation.Timestamp)
 	assert.Equal(int64(1553740619009000000), attestation.GetTimestamp().UnixNano())
@@ -29,6 +29,6 @@ func TestValidate(t *testing.T) {
 	assert.Equal(true, attestation.CTSProfileMatch)
 	assert.Equal(true, attestation.BasicIntegrity)
 
-	_, err = safetynet.ValidateSafetyNet([]byte(invalidSafetynetJws))
+	_, err = safetynet.Validate([]byte(invalidSafetynetJws))
 	assert.NotNil(err)
 }

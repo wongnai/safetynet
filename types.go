@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-var errorSafetyNetDecode = errors.New("Cannot decode token")
-var errorBasicIntegrity = errors.New("Basic integrity check fail")
-var errorSafetyNetError = errors.New("SafetyNet report error")
+var ErrorSafetyNetDecode = errors.New("cannot decode token")
+var ErrorBasicIntegrity = errors.New("basic integrity check fail")
+var ErrorSafetyNetError = errors.New("safetyNet report error")
 
 type Attestation struct {
 	Timestamp                  int64    `json:"timestampMs"`

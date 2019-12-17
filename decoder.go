@@ -9,14 +9,14 @@ import (
 // for mocking
 var TimeFunction = time.Now
 
-func ValidateSafetyNet(token []byte) (out Attestation, err error) {
+func Validate(token []byte) (out Attestation, err error) {
 	jwt, err := jwt.ParseSigned(string(token))
 	if err != nil {
 		return
 	}
 
 	if len(jwt.Headers) != 1 {
-		err = errorSafetyNetDecode
+		err = ErrorSafetyNetDecode
 		return
 	}
 	key := jwt.Headers[0]
@@ -36,7 +36,7 @@ func ValidateSafetyNet(token []byte) (out Attestation, err error) {
 	}
 
 	if out.Error != "" {
-		err = errorSafetyNetError
+		err = ErrorSafetyNetError
 		return
 	}
 
