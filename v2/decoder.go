@@ -2,12 +2,15 @@ package safetynet
 
 import (
 	"crypto/x509"
+	"errors"
 	"gopkg.in/square/go-jose.v2/jwt"
 	"time"
 )
 
 // for mocking
 var TimeFunction = time.Now
+
+var ErrUnknownVendor = errors.New("safetynet: valid certificate found but not from any known safetynet vendors")
 
 var roots, _ = x509.SystemCertPool()
 
@@ -30,25 +33,28 @@ func Validate(token string) (out Attestation, err error) {
 	}
 	key := jwt.Headers[0]
 
-	var cert *x509.Certificate
-	var foundVendor Vendor
+	var certs [][]*x509.Certificate
+	certs, err = key.Certificates(x509.VerifyOptions{
+		Roots:                     roots,
+		MaxConstraintComparisions: 5,
+		CurrentTime:               TimeFunction(),
+	})
+	if err != nil {
+		return
+	}
 
+	cert := certs[0][0]
+	var foundVendor Vendor
+	// validate cert name here as HMS use common name
 	for _, vendor := range AllVendors {
-		var certs [][]*x509.Certificate
-		certs, err = key.Certificates(x509.VerifyOptions{
-			DNSName:                   string(vendor),
-			Roots:                     roots,
-			MaxConstraintComparisions: 5,
-			CurrentTime:               TimeFunction(),
-		})
-		if err == nil {
+		// go 1.15 no longer validate common name, which HMS uses
+		if cert.VerifyHostname(string(vendor)) == nil || cert.Subject.CommonName == string(vendor) {
 			foundVendor = vendor
-			cert = certs[0][0]
 			break
 		}
 	}
-	if cert == nil && err != nil {
-		return
+	if foundVendor == "" {
+		return Attestation{}, ErrUnknownVendor
 	}
 
 	if foundVendor == VendorHMS {
